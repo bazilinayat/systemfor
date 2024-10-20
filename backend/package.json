@@ -1,0 +1,21 @@
+{
+  "name": "systemfor",
+  "version": "1.0.0",
+  "description": "for the system",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "BI",
+  "license": "ISC",
+  "dependencies": {
+    "config": "^3.3.12",
+    "express": "^4.21.1",
+    "nodemon": "^3.1.7",
+    "pdfkit": "^0.15.0",
+    "qrcode": "^1.5.4",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "underscore": "^1.13.7"
+  }
+}

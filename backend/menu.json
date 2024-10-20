@@ -1,0 +1,37 @@
+[
+    {
+        "itemId": 1,
+        "name": "Spring Rolls",
+        "category": "Starters",
+        "veg": true,
+        "price": 10
+    },
+    {
+        "itemId": 2,
+        "name": "Spring Rolls1",
+        "category": "Starters1",
+        "veg": false,
+        "price": 10
+    },
+    {
+        "itemId": 3,
+        "name": "Kebab",
+        "category": "Starters",
+        "veg": true,
+        "price": 10
+    },
+    {
+        "itemId": 8,
+        "name": "Curry",
+        "category": "Main Course",
+        "veg": false,
+        "price": 10
+    },
+    {
+        "itemId": 5,
+        "name": "Just Stuffed",
+        "category": "Starters1",
+        "veg": false,
+        "price": 8
+    }
+]
