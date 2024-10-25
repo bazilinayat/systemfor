@@ -1,12 +1,13 @@
 const express = require("express")
 const app = express()
-const port = 3000
+const port = 3005
 
 // requirements for functionalities
 const QRCode = require('qrcode');
 const PDFDocument = require('pdfkit');
 const _ = require("underscore");
 const fs = require("fs")
+var cors = require('cors')
 
 // require for configs
 const config = require("config");
@@ -56,7 +57,7 @@ app.get("/", (req, res) => {
 
 // Menu APIs
 // API to get whole menu with all items or items for a single category
-app.get('/api/menu', (req, res) => {
+app.get('/api/menu', cors(), (req, res) => {
     let category = req.query.category
 
     let menuToDisplay = []
@@ -69,7 +70,7 @@ app.get('/api/menu', (req, res) => {
 });
 
 // API to get a list of all categories
-app.get('/api/menu/categories', (req, res) => {
+app.get('/api/menu/categories', cors(), (req, res) => {
     let categories = [...new Set(menu.map(item => item.category))]
 
     res.status(200).json(categories)
@@ -77,12 +78,12 @@ app.get('/api/menu/categories', (req, res) => {
 
 // Table APIs
 // API to get table list with availability
-app.get('/api/tables', (req, res) => {
+app.get('/api/tables', cors(), (req, res) => {
     res.status(200).json(tables);
 });
 
 // API to reserve a table or to occupy a table
-app.get('/api/tables/:tableId', (req, res) => {
+app.get('/api/tables/:tableId', cors(), (req, res) => {
     const { tableId } = req.params;
 
     const table = tables.find(t => t.id === parseInt(tableId));
@@ -100,7 +101,7 @@ app.get('/api/tables/:tableId', (req, res) => {
 });
 
 // API to clear a table, mostly called when billing done
-app.get('/api/tables/clear/:tableId', (req, res) => {
+app.get('/api/tables/clear/:tableId', cors(), (req, res) => {
     const { tableId } = req.params;
 
     const table = tables.find(t => t.id === parseInt(tableId));
@@ -120,19 +121,19 @@ app.get('/api/tables/clear/:tableId', (req, res) => {
 
 // Order APIs
 // API to add item to table's order
-app.get('/api/order/:tableId', (req, res) => {
+app.post('/api/order/:tableId', cors(), (req, res) => {
     const { tableId } = req.params;
-    //let { menuItems } = req.body;
-    let menuItems = [
-        {
-            itemId: 1,
-            qty: 1
-        },
-        {
-            itemId: 2,
-            qty: 1
-        }
-    ]
+    let { menuItems } = req.body;
+    // let menuItems = [
+    //     {
+    //         itemId: 1,
+    //         qty: 1
+    //     },
+    //     {
+    //         itemId: 2,
+    //         qty: 1
+    //     }
+    // ]
     
     let orderId = null
     let order = {
@@ -163,7 +164,7 @@ app.get('/api/order/:tableId', (req, res) => {
 });
 
 // API to get order detalis
-app.get('/api/getorder/:orderId', (req, res) => {
+app.get('/api/getorder/:orderId', cors(), (req, res) => {
     const { orderId } = req.params;
 
     const order = orders.find(o => o.orderId === parseInt(orderId));
@@ -175,7 +176,7 @@ app.get('/api/getorder/:orderId', (req, res) => {
 })
 
 // API to add to the existing order
-app.get('/api/order/add/:orderId', (req, res) => {
+app.get('/api/order/add/:orderId', cors(), (req, res) => {
     const { orderId } = req.params;
     //let { menuItems } = req.body;
 
@@ -219,7 +220,7 @@ app.get('/api/order/add/:orderId', (req, res) => {
 })
 
 // API to add tip to the order, most probably this will not be needed
-app.get('/api/order/tip/:tableId/:orderId/:tip', (req, res) => {
+app.get('/api/order/tip/:tableId/:orderId/:tip', cors(), (req, res) => {
     const { tableId } = req.params;
     const { orderId } = req.params;
     //const { tip } = req.params;
@@ -236,7 +237,7 @@ app.get('/api/order/tip/:tableId/:orderId/:tip', (req, res) => {
   });
 
 // API to generate the bill and QR code
-app.get('/api/order/bill/:tableId/:orderId', async (req, res) => {
+app.get('/api/order/bill/:tableId/:orderId', cors(), async (req, res) => {
     const { tableId } = req.params;
     const { orderId } = req.params;
   
@@ -258,7 +259,7 @@ app.get('/api/order/bill/:tableId/:orderId', async (req, res) => {
 });
 
 // API to generate invoice
-app.get('/api/order/invoice/:tableId/:orderId', (req, res) => {
+app.get('/api/order/invoice/:tableId/:orderId', cors(), (req, res) => {
     const { tableId } = req.params;
     const { orderId } = req.params;
   
@@ -303,6 +304,12 @@ function init() {
 
     orders = []
 }
+
+app.use(cors({
+    origin: ['http://localhost:3000']
+  }))
+
+app.use(express.json())
 
 app.listen(port, () => {
 

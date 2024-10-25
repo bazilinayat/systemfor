@@ -52,6 +52,21 @@ noOftables - total number of tables in the restaurants
     Sample Output -
         {"message":"Table - 3 - is reserved."}
 
+Modify the component -
+
+On the bottom right corner inside the box, add a button.
+The button should be disabled first, only to be enabled when 1 or more items from checkboxes are selected
+
+When clicked, the button will call an post api with a request body -
+The url - http://localhost:3000/api/order/<tableId>
+
+the request body -
+{
+}
+
+Where <tableId>, is the selected value from table drop down list
+If not selected, show an alert saying - 'Select the table first'
+
 7. http://localhost:3000/api/order/<tableId>
     Sets the initial order for the given table id
 
