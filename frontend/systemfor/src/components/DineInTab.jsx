@@ -245,6 +245,14 @@ const DineInTab = () => {
 
       // Clear the table after invoice generation
       await fetch(`${BaseUrl}/api/tables/clear/${selectedTable}`, { method: 'POST' });
+
+      // Clear the orderId from the order history
+      setOrderHistory((prevHistory) => {
+        const updatedHistory = { ...prevHistory };
+        delete updatedHistory[selectedTable]; // Remove orderId for the cleared table
+        return updatedHistory;
+      });
+
       alert('Table cleared successfully');
     } catch (error) {
       console.error('Error generating invoice or clearing table:', error);
