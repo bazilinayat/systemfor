@@ -8,10 +8,19 @@ const PDFDocument = require('pdfkit');
 const _ = require("underscore");
 const fs = require("fs")
 var cors = require('cors')
+var bodyParser = require('body-parser')
 
 // require for configs
 const config = require("config");
 const helper = require("./helpers");
+
+app.use(cors({
+    origin: ['http://localhost:3000']
+  }))
+
+
+app.use(bodyParser.json()) // for parsing application/json
+app.use(bodyParser.urlencoded({ extended: true }))
 
 //requirements for custom imports
 
@@ -101,7 +110,7 @@ app.get('/api/tables/:tableId', cors(), (req, res) => {
 });
 
 // API to clear a table, mostly called when billing done
-app.get('/api/tables/clear/:tableId', cors(), (req, res) => {
+app.post('/api/tables/clear/:tableId', cors(), (req, res) => {
     const { tableId } = req.params;
 
     const table = tables.find(t => t.id === parseInt(tableId));
@@ -123,7 +132,7 @@ app.get('/api/tables/clear/:tableId', cors(), (req, res) => {
 // API to add item to table's order
 app.post('/api/order/:tableId', cors(), (req, res) => {
     const { tableId } = req.params;
-    let { menuItems } = req.body;
+    let menuItems = req.body;
     // let menuItems = [
     //     {
     //         itemId: 1,
@@ -134,6 +143,8 @@ app.post('/api/order/:tableId', cors(), (req, res) => {
     //         qty: 1
     //     }
     // ]
+
+    console.log('here I am')
     
     let orderId = null
     let order = {
@@ -176,38 +187,33 @@ app.get('/api/getorder/:orderId', cors(), (req, res) => {
 })
 
 // API to add to the existing order
-app.get('/api/order/add/:orderId', cors(), (req, res) => {
+app.post('/api/order/add/:orderId', cors(), (req, res) => {
     const { orderId } = req.params;
-    //let { menuItems } = req.body;
+    let menuItems = req.body;
 
-    let menuItems = [
-        {
-            itemId: 5,
-            qty: 1
-        },
-        {
-            itemId: 8,
-            qty: 1
-        },
-        {
-            itemId: 2,
-            qty: 2
-        }
-    ]
-
-    let existingItems = []
-    orders.forEach((x) => {
-        if (x.orderId === orderId) {
-            existingItems = x.items
-        }
-    });
-
-    let itemsToAdd = helper.GetItemsIncludingExisting(existingItems, menuItems, menu)
+    // let menuItems = [
+    //     {
+    //         itemId: 5,
+    //         qty: 1
+    //     },
+    //     {
+    //         itemId: 8,
+    //         qty: 1
+    //     },
+    //     {
+    //         itemId: 2,
+    //         qty: 2
+    //     }
+    // ]
 
     const order = orders.find(o => o.orderId === parseInt(orderId));
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
+
+    let existingItems = order.items
+
+    let itemsToAdd = helper.GetItemsIncludingExisting(existingItems, menuItems, menu)
 
     order.items = []
     itemsToAdd.forEach((item) => {
@@ -252,7 +258,8 @@ app.get('/api/order/bill/:tableId/:orderId', cors(), async (req, res) => {
     order.total = helper.CalculateTotal(order)
   
     // Generate QR code with bill details
-    const qrData = `Table: ${tableId}, Order: ${orderId}, Total: ${order.totalBeforeTax}, Tip: ${order.tip}, GST: ${helper.GetGSTTotal(order)}`;
+    //const qrData = `Table: ${tableId}, Order: ${orderId}, Total: ${order.totalBeforeTax}, Tip: ${order.tip}, GST: ${helper.GetGSTTotal(order)}`;
+    const qrData = `${req.protocol}://${req.headers.host}/api/order/invoice/${tableId}/${orderId}`
     const qrCode = await QRCode.toDataURL(qrData);
   
     res.json({ total: order.total, qrCode });
@@ -304,12 +311,6 @@ function init() {
 
     orders = []
 }
-
-app.use(cors({
-    origin: ['http://localhost:3000']
-  }))
-
-app.use(express.json())
 
 app.listen(port, () => {
 

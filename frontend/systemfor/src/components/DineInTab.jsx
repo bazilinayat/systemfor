@@ -87,31 +87,181 @@ const DineInTab = () => {
       return;
     }
 
-    const menuItems = selectedItems.map((item) => ({
+    const orderItems = selectedItems.map((item) => ({
       itemId: item.id,
       qty: item.quantity,
     }));
 
+    const existingOrderId = orderHistory[selectedTable];
+
+    // Determine URL based on whether the order already exists for the table
+    const url = existingOrderId
+      ? `http://localhost:3005/api/order/add/${existingOrderId}`
+      : `http://localhost:3005/api/order/${selectedTable}`;
+
     try {
-      const response = await fetch(`http://localhost:3005/api/order/${selectedTable}`, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(menuItems),
+        body: JSON.stringify(orderItems),
       });
       const data = await response.json();
-      setOrderHistory((prevHistory) => ({
-        ...prevHistory,
-        [selectedTable]: data.orderId,
-      }));
-      alert(`Order placed successfully! Order ID: ${data.orderId}`);
+      
+      if (!existingOrderId) {
+        // Save orderId if this is a new order
+        setOrderHistory((prevHistory) => ({
+          ...prevHistory,
+          [selectedTable]: data.orderId,
+        }));
+      }
+
+      alert(data.message);
     } catch (error) {
-      alert(error);
       console.error('Error placing order:', error);
     }
   };
 
+  const handleViewOrder = async () => {
+    if (!selectedTable) {
+      alert('Select the table first');
+      return;
+    }
+
+    const orderId = orderHistory[selectedTable];
+    if (!orderId) {
+      alert('No order found for this table.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3005/api/getorder/${orderId}`);
+      const orderData = await response.json();
+      const orderWindow = window.open('', '_blank');
+      orderWindow.document.write(`
+        <html>
+          <head>
+            <title>Order Details for Table ${selectedTable}</title>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              .order-container { padding: 20px; max-width: 600px; margin: auto; }
+              .header { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; }
+              .table, .table th, .table td { border: 1px solid #ddd; border-collapse: collapse; padding: 8px; }
+              .table th { background-color: #f2f2f2; }
+              .table th, .table td { text-align: left; }
+              .table-container { margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="order-container">
+              <div class="header">Order Details</div>
+              <div>Table Id: ${selectedTable}</div>
+              <div>Order Id: ${orderData.orderId}</div>
+              <div class="table-container">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Item Name</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${orderData.items.map(item => `
+                      <tr>
+                        <td>${item.name}</td>
+                        <td>${item.qty}</td>
+                        <td>${item.price}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      orderWindow.document.close();
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+    }
+  };
+
+  const handleGetBill = async () => {
+    if (!selectedTable) {
+      alert('Select the table first');
+      return;
+    }
+
+    const orderId = orderHistory[selectedTable];
+    if (!orderId) {
+      alert('No order found for this table.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3005/api/order/bill/${selectedTable}/${orderId}`);
+      const billData = await response.json();
+
+      const billWindow = window.open('', '_blank');
+      billWindow.document.write(`
+        <html>
+          <head>
+            <title>Bill for Table ${selectedTable}</title>
+          </head>
+          <body>
+            <h1>Total: ₹${billData.total}</h1>
+            <div>Scan the QR code to pay:</div>
+            <img src="${billData.qrCode}" alt="QR Code" />
+          </body>
+        </html>
+      `);
+      billWindow.document.close();
+    } catch (error) {
+      console.error('Error fetching bill:', error);
+    }
+  };
+
+  const handleGenerateInvoice = async () => {
+
+    if (!selectedTable) {
+      alert('Select the table first');
+      return;
+    }
+
+    const orderId = orderHistory[selectedTable];
+    if (!orderId) {
+      alert('No order found for this table.');
+      return;
+    }
+
+    try {
+      // Fetch the invoice PDF
+      const response = await fetch(`http://localhost:3005/api/order/invoice/${selectedTable}/${orderId}`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url);
+
+      // Clear the table after invoice generation
+      await fetch(`http://localhost:3005/api/tables/clear/${selectedTable}`, { method: 'POST' });
+      alert('Table cleared successfully');
+    } catch (error) {
+      console.error('Error generating invoice or clearing table:', error);
+    }
+
+  };
+
   return (
     <div>
+      <button onClick={handleViewOrder} style={styles.viewOrderButton}>View Order</button>
+      <button onClick={handleGetBill} disabled={!selectedTable} style={styles.getBillButton}>
+        Get Bill
+      </button>
+      <button onClick={handleGenerateInvoice} disabled={!selectedTable} style={styles.generateInvoiceButton}>
+
+        Generate Invoice
+
+      </button>
+
       <div style={styles.dropdownContainer}>
         <label htmlFor="table-select">Select a Table: </label>
         <select id="table-select" value={selectedTable} onChange={handleTableChange} style={styles.dropdown}>
@@ -154,7 +304,7 @@ const DineInTab = () => {
                       onChange={() => toggleItemSelection(categoryIndex, itemIndex)}
                       style={styles.checkbox}
                     />
-                    {item.name} - ${item.price} {item.veg ? '(Veg)' : '(Non-Veg)'}
+                    {item.name} - ₹{item.price} {item.veg ? '(Veg)' : '(Non-Veg)'}
                   </label>
                   <div style={styles.quantityContainer}>
                     <button onClick={() => decreaseQuantity(categoryIndex, itemIndex)}>-</button>
@@ -166,14 +316,11 @@ const DineInTab = () => {
             </div>
           ))}
         </div>
-        <button
-          onClick={handleOrder}
-          disabled={selectedItems.length === 0}
-          style={styles.orderButton}
-        >
-          Place Order
-        </button>
       </div>
+
+      <button onClick={handleOrder} disabled={selectedItems.length === 0} style={styles.orderButton}>
+        Place Order
+      </button>
     </div>
   );
 };
@@ -184,30 +331,34 @@ const styles = {
   },
   dropdown: {
     padding: '5px',
+    fontSize: '16px',
   },
   container: {
     display: 'flex',
-    flexDirection: 'column',
-    width: '100%',
-    height: '400px',
-    border: '1px solid #ddd',
+    flexDirection: 'row',
+    border: '1px solid #ccc',
+    padding: '20px',
+  },
+  viewOrderButton: {
+    marginRight: '10px',
+  },
+  getBillButton: {
+    marginBottom: '10px',
+    padding: '8px 16px',
+    cursor: 'pointer',
   },
   listContainer: {
     width: '30%',
     padding: '10px',
-    borderRight: '1px solid #ddd',
-    overflowY: 'auto',
   },
   list: {
     listStyleType: 'none',
     padding: 0,
-    margin: 0,
   },
   listItem: {
-    padding: '8px 0',
-    borderBottom: '1px solid #f0f0f0',
+    padding: '10px',
+    backgroundColor: '#f0f0f0',
     cursor: 'pointer',
-    color: '#007bff',
   },
   checkboxContainer: {
     width: '70%',
@@ -216,22 +367,21 @@ const styles = {
   },
   itemRow: {
     display: 'flex',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: '10px',
+    alignItems: 'center',
+    padding: '8px 0',
   },
   checkbox: {
-    marginRight: '10px',
+    marginRight: '8px',
   },
   quantityContainer: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
   },
   orderButton: {
-    alignSelf: 'flex-end',
     marginTop: '10px',
-    padding: '10px 20px',
+    padding: '8px 16px',
+    cursor: 'pointer',
   },
 };
 
