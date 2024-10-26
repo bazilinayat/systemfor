@@ -15,7 +15,7 @@ const config = require("config");
 const helper = require("./helpers");
 
 app.use(cors({
-    origin: ['http://localhost:3000']
+    origin: ['https://systemfor.onrender.com']
   }))
 
 
