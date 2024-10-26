@@ -8,11 +8,13 @@ const DineInTab = () => {
   const [categoryItems, setCategoryItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderHistory, setOrderHistory] = useState({});
+
+  const BaseUrl = "https://systemfor.onrender.com"
   
   useEffect(() => {
     const fetchTables = async () => {
       try {
-        const response = await fetch('http://localhost:3005/api/tables');
+        const response = await fetch(`${BaseUrl}/api/tables`);
         const data = await response.json();
         setTables(data);
       } catch (error) {
@@ -26,7 +28,7 @@ const DineInTab = () => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await fetch('http://localhost:3005/api/menu/categories');
+        const response = await fetch(`${BaseUrl}/api/menu/categories`);
         const data = await response.json();
         setItems(data);
       } catch (error) {
@@ -39,7 +41,7 @@ const DineInTab = () => {
 
   const handleItemClick = async (itemKey) => {
     try {
-      const response = await fetch(`http://localhost:3005/api/menu?category=${itemKey}`);
+      const response = await fetch(`${BaseUrl}/api/menu?category=${itemKey}`);
       const data = await response.json();
       const updatedData = data.map((category) => ({
         ...category,
@@ -96,8 +98,8 @@ const DineInTab = () => {
 
     // Determine URL based on whether the order already exists for the table
     const url = existingOrderId
-      ? `http://localhost:3005/api/order/add/${existingOrderId}`
-      : `http://localhost:3005/api/order/${selectedTable}`;
+      ? `${BaseUrl}/api/order/add/${existingOrderId}`
+      : `${BaseUrl}/api/order/${selectedTable}`;
 
     try {
       const response = await fetch(url, {
@@ -134,7 +136,7 @@ const DineInTab = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3005/api/getorder/${orderId}`);
+      const response = await fetch(`${BaseUrl}/api/getorder/${orderId}`);
       const orderData = await response.json();
       const orderWindow = window.open('', '_blank');
       orderWindow.document.write(`
@@ -199,7 +201,7 @@ const DineInTab = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3005/api/order/bill/${selectedTable}/${orderId}`);
+      const response = await fetch(`${BaseUrl}/api/order/bill/${selectedTable}/${orderId}`);
       const billData = await response.json();
 
       const billWindow = window.open('', '_blank');
@@ -236,13 +238,13 @@ const DineInTab = () => {
 
     try {
       // Fetch the invoice PDF
-      const response = await fetch(`http://localhost:3005/api/order/invoice/${selectedTable}/${orderId}`);
+      const response = await fetch(`${BaseUrl}/api/order/invoice/${selectedTable}/${orderId}`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       window.open(url);
 
       // Clear the table after invoice generation
-      await fetch(`http://localhost:3005/api/tables/clear/${selectedTable}`, { method: 'POST' });
+      await fetch(`${BaseUrl}/api/tables/clear/${selectedTable}`, { method: 'POST' });
       alert('Table cleared successfully');
     } catch (error) {
       console.error('Error generating invoice or clearing table:', error);
