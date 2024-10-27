@@ -9,8 +9,8 @@ const DineInTab = () => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderHistory, setOrderHistory] = useState({});
 
-  //const BaseUrl = "https://systemfor.onrender.com"
-  const BaseUrl = "http://localhost:3005"
+  const BaseUrl = "https://systemfor.onrender.com"
+  //const BaseUrl = "http://localhost:3005"
   
   useEffect(() => {
     const fetchTables = async () => {
