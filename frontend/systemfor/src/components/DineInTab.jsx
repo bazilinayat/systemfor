@@ -9,7 +9,8 @@ const DineInTab = () => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderHistory, setOrderHistory] = useState({});
 
-  const BaseUrl = "https://systemfor.onrender.com"
+  //const BaseUrl = "https://systemfor.onrender.com"
+  const BaseUrl = "http://localhost:3005"
   
   useEffect(() => {
     const fetchTables = async () => {
@@ -38,6 +39,10 @@ const DineInTab = () => {
 
     fetchItems();
   }, []);
+
+  const handleTableClick = (tableId) => {
+    setSelectedTable(tableId);
+  };
 
   const handleItemClick = async (itemKey) => {
     try {
@@ -262,17 +267,35 @@ const DineInTab = () => {
 
   return (
     <div>
-      <button onClick={handleViewOrder} style={styles.viewOrderButton}>View Order</button>
-      <button onClick={handleGetBill} disabled={!selectedTable} style={styles.getBillButton}>
-        Get Bill
-      </button>
-      <button onClick={handleGenerateInvoice} disabled={!selectedTable} style={styles.generateInvoiceButton}>
 
-        Generate Invoice
+<h3>Select a Table</h3>
+      <div style={styles.gridContainer}>
+        {tables.slice(0, 25).map((table) => (
+          <button
+            key={table.id}
+            onClick={() => handleTableClick(table.id)}
+            style={{
+              ...styles.tableButton,
+              backgroundColor: selectedTable === table.id ? '#4CAF50' : '#f0f0f0',
+            }}
+          >
+            Table {table.id}
+          </button>
+        ))}
+      </div>
 
-      </button>
+     {/* Align buttons in a flex container */}
+     <div style={styles.buttonContainer}>
+        <button onClick={handleViewOrder} style={styles.actionButton}>View Order</button>
+        <button onClick={handleGetBill} disabled={!selectedTable} style={styles.actionButton}>
+          Get Bill
+        </button>
+        <button onClick={handleGenerateInvoice} disabled={!selectedTable} style={styles.actionButton}>
+          Generate Invoice
+        </button>
+      </div>
 
-      <div style={styles.dropdownContainer}>
+      {/* <div style={styles.dropdownContainer}>
         <label htmlFor="table-select">Select a Table: </label>
         <select id="table-select" value={selectedTable} onChange={handleTableChange} style={styles.dropdown}>
           <option value="">-- Select a Table --</option>
@@ -282,7 +305,7 @@ const DineInTab = () => {
             </option>
           ))}
         </select>
-      </div>
+      </div> */}
 
       <div style={styles.container}>
         <div style={styles.listContainer}>
@@ -336,6 +359,35 @@ const DineInTab = () => {
 };
 
 const styles = {
+  gridContainer: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(5, 1fr)',
+    gap: '15px', // adds space between grid cells
+    marginBottom: '20px',
+  },
+  tableButton: {
+    padding: '20px',
+    fontSize: '16px',
+    cursor: 'pointer',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
+  },
+  buttonContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '20px', // adds space between buttons
+    marginTop: '20px',
+  },
+  actionButton: {
+    padding: '10px 20px',
+    fontSize: '16px',
+    cursor: 'pointer',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
+    backgroundColor: '#007bff',
+    color: '#fff',
+    margin: '0 5px', // additional margin around each button
+  },
   dropdownContainer: {
     marginBottom: '10px',
   },

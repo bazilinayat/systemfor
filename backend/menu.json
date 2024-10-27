@@ -8,30 +8,44 @@
     },
     {
         "itemId": 2,
-        "name": "Spring Rolls1",
-        "category": "Starters1",
-        "veg": false,
+        "name": "Cold Coffee",
+        "category": "Drinks",
+        "veg": true,
         "price": 10
     },
     {
         "itemId": 3,
-        "name": "Kebab",
+        "name": "Paneer Kebab",
         "category": "Starters",
         "veg": true,
         "price": 10
     },
     {
         "itemId": 8,
-        "name": "Curry",
+        "name": "Pav Bhaji",
         "category": "Main Course",
-        "veg": false,
+        "veg": true,
         "price": 10
     },
     {
         "itemId": 5,
-        "name": "Just Stuffed",
-        "category": "Starters1",
-        "veg": false,
-        "price": 8
+        "name": "Cold Drink",
+        "category": "Drinks",
+        "veg": true,
+        "price": 25
+    },
+    {
+        "itemId": 6,
+        "name": "Veg Roll",
+        "category": "Starters",
+        "veg": true,
+        "price": 30
+    },
+    {
+        "itemId": 6,
+        "name": "Pav",
+        "category": "Extras",
+        "veg": true,
+        "price": 10
     }
 ]
